@@ -2,6 +2,7 @@
 # Python
 # ==========================
 __pycache__/
+*.pyc
 *.py[cod]
 *.pyo
 *.egg-info/
@@ -28,9 +29,12 @@ extracted_frames/
 # ==========================
 # Trained Models
 # ==========================
-models/
+models (experiment one)/
 *.pth
 *.pt
+
+!models (experiment two)/
+!models (experiment two)/efficientnet_b0.pth
 
 # ==========================
 # Python cache
