@@ -1,348 +1,463 @@
 # Deepfake Image Detection System
 
-A three-class deepfake image detection system that uses **EfficientNet-B0 and transfer learning** to classify facial images as **Real, Face-Swapped, or Synthetic**.
-
-The trained model is integrated into a web application built with **Flask, React, Vite, TypeScript, and Tailwind CSS**, allowing users to upload an image and receive a predicted category together with a confidence percentage.
-
----
-
 ## Overview
 
-The increasing accessibility of generative artificial intelligence and face-manipulation technologies has made it increasingly difficult to distinguish authentic facial images from artificially generated or manipulated ones.
+The **Deepfake Image Detection System** is a web-based image classification application developed as a final-year project at the **University of Ghana, Legon**.
 
-This project investigates the use of convolutional neural networks for automated facial-image classification. Rather than treating all manipulated images as a single category, the system performs **three-class classification**:
+The system uses **transfer learning with an EfficientNet-B0 convolutional neural network** to classify facial images into three categories:
 
-* **Real** — authentic facial images
-* **Face-Swapped** — images in which a face has been replaced or manipulated using face-swapping techniques
-* **Synthetic** — artificially generated facial images
+* **Real**
+* **Face-Swapped**
+* **Synthetic**
 
-The project consists of two main components:
+The application combines a **PyTorch-based deep learning model**, a **Flask backend**, and a **React + TypeScript frontend** to provide an interactive interface for uploading an image and receiving a classification result with a confidence value.
 
-1. **Machine Learning Model** — an EfficientNet-B0 classifier trained using transfer learning.
-2. **Web Application** — a Flask backend and React-based frontend that provide access to the trained model.
-
-The system is designed specifically for **still facial images** and is not intended to analyse video, audio, metadata, or other forms of digital media.
+The system is designed specifically for **image-based deepfake detection** and does not store uploaded photographs or require user accounts.
 
 ---
 
 ## Key Features
 
 * Three-class deepfake image classification
-* EfficientNet-B0 transfer-learning architecture
-* Classification of:
-
-  * Real images
-  * Face-swapped images
-  * Synthetic images
-* Confidence percentage for each prediction
-* Facial-content validation before classification
-* Invalid image-file detection
-* Flask-based inference backend
-* React + Vite frontend
-* TypeScript-based frontend implementation
-* No user accounts required
-* Images are processed for prediction without being stored by the application
+* Real, synthetic, and face-swapped image detection
+* EfficientNet-B0 transfer learning architecture
+* ImageNet-pretrained model initialization
+* Facial input validation
+* Prediction confidence reporting
+* Responsive web interface
+* Flask REST API
+* React + TypeScript frontend
 * CPU-compatible inference
+* No user authentication required
+* Uploaded images are not permanently stored
 
 ---
 
-## Model
+# System Architecture
 
-The detection model is based on **EfficientNet-B0**, a convolutional neural network architecture originally designed for efficient image classification.
-
-Transfer learning was used to adapt the pretrained architecture to the project's three target classes.
-
-The final classification layer was modified to produce three outputs:
+The application consists of three main components:
 
 ```text
-Real
-Synthetic
-Face-Swapped
-```
-
-### Training Configuration
-
-| Parameter                | Configuration      |
-| ------------------------ | ------------------ |
-| Architecture             | EfficientNet-B0    |
-| Learning approach        | Transfer learning  |
-| Number of classes        | 3                  |
-| Optimiser                | Adam               |
-| Learning rate            | 0.0001             |
-| Loss function            | Cross-Entropy Loss |
-| Batch size               | 8                  |
-| Training device          | CPU                |
-| Best epoch               | 11                 |
-| Best validation accuracy | 96.15%             |
-
----
-
-## Dataset
-
-The project uses three categories of facial images.
-
-### Real
-
-The real-image class was constructed from:
-
-* **FFHQ real images**
-* **Celeb-DF real images**
-
-The sampled dataset allocated 3,000 images from each source, giving a target of 6,000 real images.
-
-### Synthetic
-
-The synthetic class uses the **StyleGAN3 Synthetic Face Image Dataset**, distributed through Kaggle.
-
-The available source dataset contains approximately 29,999 images. A balanced subset was sampled for this project.
-
-### Face-Swapped
-
-The face-swapped class uses the dataset titled:
-
-> **DeepFake(face swapped) images using FFHQ dataset**
-
-The source dataset contains approximately 111,016 images, from which a balanced subset was sampled.
-
-### Dataset Distribution
-
-The sampled dataset was constructed with the following target distribution:
-
-| Class        | Sampled Images |
-| ------------ | -------------: |
-| Real         |          6,000 |
-| Synthetic    |          6,000 |
-| Face-Swapped |          6,000 |
-| **Total**    |     **18,000** |
-
-The data was subsequently processed and divided into training, validation, and test sets.
-
----
-
-## Preprocessing
-
-Before training, the images were processed through a facial-image preprocessing pipeline.
-
-The preprocessing stage includes:
-
-1. Loading the source image
-2. Detecting the face
-3. Selecting the relevant facial region
-4. Applying a margin around the detected face
-5. Cropping the facial region
-6. Resizing the resulting image to **224 × 224 pixels**
-7. Organising the processed images into training, validation, and test directories
-
-The dataset was divided using a:
-
-* **70% training split**
-* **15% validation split**
-* **15% test split**
-
-The final evaluation used **2,700 test images**, with 900 images representing each target class.
-
----
-
-## Evaluation Results
-
-The final model was selected based on validation performance.
-
-**Best model: Epoch 11**
-
-* Validation accuracy: **96.15%**
-* Test accuracy: **97.44%**
-* Correct test predictions: **2,631 / 2,700**
-
-### Class-Specific Results
-
-| Class        |   Correct | Recall | F1-Score |
-| ------------ | --------: | -----: | -------: |
-| Real         | 878 / 900 | 97.56% |   0.9622 |
-| Synthetic    | 855 / 900 | 95.00% |   0.9623 |
-| Face-Swapped | 898 / 900 | 99.78% |   0.9989 |
-
-### Confusion Matrix
-
-The confusion matrix below uses the class order **Real → Synthetic → Face-Swapped**:
-
-| Actual / Predicted |    Real | Synthetic | Face-Swapped |
-| ------------------ | ------: | --------: | -----------: |
-| **Real**           | **878** |        22 |            0 |
-| **Synthetic**      |      45 |   **855** |            0 |
-| **Face-Swapped**   |       2 |         0 |      **898** |
-
-The majority of classification errors occurred between the **real and synthetic** classes.
-
-Of the 69 incorrect predictions:
-
-* 22 real images were classified as synthetic.
-* 45 synthetic images were classified as real.
-* 2 face-swapped images were classified as real.
-
-Therefore, **67 of the 69 errors involved real-synthetic confusion**.
-
----
-
-## System Architecture
-
-The application follows a frontend-backend-machine-learning architecture.
-
-```text
-┌──────────────────────┐
-│       User           │
-└──────────┬───────────┘
-           │
-           │ Upload Image
-           ▼
-┌──────────────────────┐
-│   React Frontend     │
-│   + Vite + TypeScript│
-└──────────┬───────────┘
-           │
-           │ HTTP Request
-           ▼
-┌──────────────────────┐
-│    Flask Backend     │
-│                      │
-│ • Input validation   │
-│ • Face detection     │
-│ • Image preprocessing│
-└──────────┬───────────┘
-           │
-           │ Processed Image
-           ▼
-┌──────────────────────┐
-│   EfficientNet-B0    │
-│   PyTorch Model      │
-└──────────┬───────────┘
-           │
-           │ Prediction
-           ▼
-┌──────────────────────┐
-│   Flask Response     │
-│                      │
-│ • Class              │
-│ • Confidence         │
-│ • Probabilities      │
-└──────────┬───────────┘
-           │
-           ▼
-┌──────────────────────┐
-│   React Frontend     │
-│                      │
-│ Likely Real          │
-│ Likely Swapped       │
-│ Likely Synthetic     │
-└──────────────────────┘
+┌─────────────────────────────┐
+│       React Frontend        │
+│      TypeScript + Vite      │
+└──────────────┬──────────────┘
+               │
+               │ HTTP Request
+               ▼
+┌─────────────────────────────┐
+│       Flask Backend         │
+│       /predict endpoint     │
+└──────────────┬──────────────┘
+               │
+               │ Image
+               ▼
+┌─────────────────────────────┐
+│      EfficientNet-B0        │
+│    PyTorch Classification   │
+└──────────────┬──────────────┘
+               │
+               ▼
+       ┌─────────────────┐
+       │ Classification  │
+       │ + Confidence    │
+       └─────────────────┘
 ```
 
 ---
 
-## Application Workflow
+# How the System Works
 
-The complete prediction workflow is:
+The application follows this general workflow:
 
 ```text
-Image Upload
-     ↓
-File Validation
-     ↓
-Face Detection
-     ↓
-Image Preprocessing
-     ↓
-224 × 224 Tensor
-     ↓
+Upload Image
+     │
+     ▼
+Validate Image
+     │
+     ├── Invalid file ──────► Error message
+     │
+     ▼
+Check for Visible Face
+     │
+     ├── No face detected ──► Reject image
+     │
+     ▼
+Resize and Normalize
+     │
+     ▼
 EfficientNet-B0
-     ↓
-Softmax Probabilities
-     ↓
-Highest-Probability Class
-     ↓
-Prediction + Confidence
-     ↓
-Frontend Result
+     │
+     ▼
+Three-Class Prediction
+     │
+     ▼
+Calculate Class Probabilities
+     │
+     ▼
+Display Result + Confidence
 ```
 
-The application uses user-facing terminology such as:
+The model receives a facial image, processes it using the same image preprocessing required during model development, and produces probabilities for the three target classes.
+
+---
+
+# Classification Classes
+
+The model predicts one of three classes:
+
+| Class         | Description                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| **Real**      | An authentic facial image that is not generated or face-swapped                                |
+| **Synthetic** | A face generated artificially using a generative model                                         |
+| **Swapped**   | An image in which a person's face has been replaced or transferred onto another person's image |
+
+The frontend presents the classification result in user-oriented language such as:
 
 * **Likely Real**
 * **Likely Swapped**
 * **Likely Synthetic**
 
-The term **“likely”** is intentional. The model provides a probabilistic machine-learning prediction rather than absolute proof that an image is authentic or manipulated.
+along with the model's confidence value.
 
 ---
 
-## Input Validation
+# Dataset
 
-The backend performs several checks before an image is passed to the model.
+The final training dataset contains **18,000 images**, evenly distributed across the three classes.
 
-These include:
+| Class        | Number of Images |
+| ------------ | ---------------: |
+| Real         |            6,000 |
+| Synthetic    |            6,000 |
+| Face-Swapped |            6,000 |
+| **Total**    |       **18,000** |
 
-* Checking that an image was submitted
-* Checking that a file was actually selected
-* Verifying that the uploaded file can be opened as an image
-* Checking for a detectable face
+## Real Images
 
-If no face is detected, the system returns an appropriate error instead of attempting to classify the image.
+The real-image class was constructed from two sources:
 
-This is particularly important because the model was trained specifically for facial-image classification.
+* **FFHQ (Flickr-Faces-HQ)**
+* **Celeb-DF real images**
+
+The final real-image dataset contains:
+
+* 3,000 FFHQ images
+* 3,000 CelebDF real images
+
+for a total of **6,000 real images**.
+
+## Synthetic Images
+
+The synthetic class consists of artificially generated facial images produced using **StyleGAN3**.
+
+The source is referred to in the project as the **StyleGAN3 Fake Faces / StyleGAN3 Synthetic Face Image Dataset**.
+
+A total of **6,000 synthetic images** were selected for the final dataset.
+
+## Face-Swapped Images
+
+The swapped class was obtained from the dataset titled:
+
+**DeepFake(face swapped) images using FFHQ dataset**
+
+The dataset contains face-swapped images generated through facial manipulation techniques.
+
+A total of **6,000 images** were selected for the final dataset.
 
 ---
 
-## Technologies Used
+# Data Preprocessing
 
-### Machine Learning
+Before training, the images were processed to provide a consistent input format.
 
-* **Python**
-* **PyTorch**
-* **Torchvision**
-* **EfficientNet-B0**
-* **MTCNN / OpenCV Haar Cascade** for facial detection during preprocessing and application input validation
-* **Pillow**
-* **NumPy**
+The preprocessing pipeline includes:
 
-### Backend
+1. Face detection
+2. Identification of the largest detected face
+3. Facial-region cropping
+4. Addition of a facial-region margin
+5. Resizing to **224 × 224 pixels**
+6. Dataset splitting
+7. Image normalization
 
-* **Flask**
+The system uses **MTCNN** when available for face detection and provides a Haar Cascade-based fallback.
+
+The final dataset was divided into training, validation, and testing subsets.
+
+| Class     |   Training | Validation |   Testing |      Total |
+| --------- | ---------: | ---------: | --------: | ---------: |
+| Real      |      4,200 |        900 |       900 |      6,000 |
+| Synthetic |      4,200 |        900 |       900 |      6,000 |
+| Swapped   |      4,200 |        900 |       900 |      6,000 |
+| **Total** | **12,600** |  **2,700** | **2,700** | **18,000** |
+
+The test set was kept separate from training and model selection and was used only for the final evaluation.
+
+---
+
+# Model
+
+## EfficientNet-B0
+
+The classification model is based on **EfficientNet-B0**, a convolutional neural network architecture designed to achieve a balance between model accuracy and computational efficiency.
+
+Transfer learning was used rather than training the network entirely from scratch.
+
+The model was initialized using **ImageNet-pretrained weights**, after which the original 1,000-class ImageNet classifier was replaced with a three-class classifier.
+
+```text
+EfficientNet-B0
+      │
+      ▼
+Feature Extraction
+      │
+      ▼
+1280-dimensional representation
+      │
+      ▼
+Linear Layer
+1280 → 3
+      │
+      ▼
+Real / Synthetic / Swapped
+```
+
+---
+
+# Training Configuration
+
+The final model was trained using the following configuration:
+
+| Parameter         | Value             |
+| ----------------- | ----------------- |
+| Architecture      | EfficientNet-B0   |
+| Learning approach | Transfer Learning |
+| Initial weights   | ImageNet          |
+| Number of classes | 3                 |
+| Batch size        | 8                 |
+| Optimizer         | Adam              |
+| Learning rate     | 0.0001            |
+| Loss function     | CrossEntropyLoss  |
+| Image size        | 224 × 224         |
+| Device            | CPU               |
+| Total epochs      | 15                |
+
+The final model was selected using **validation accuracy**.
+
+The highest validation accuracy was obtained at **Epoch 13**.
+
+---
+
+# Final Model Results
+
+The final selected model was the **Epoch 13 checkpoint**.
+
+### Validation Performance
+
+**Validation Accuracy: 98.59%**
+
+The Epoch 13 model was subsequently evaluated on the completely held-out test set.
+
+### Final Test Performance
+
+**Test Accuracy: 98.37%**
+
+The model correctly classified:
+
+**2,656 out of 2,700 test images.**
+
+```text
+Correct predictions: 2656 / 2700
+Test Accuracy:       98.37%
+```
+
+---
+
+# Confusion Matrix
+
+The final test confusion matrix is shown below.
+
+Class order:
+
+```text
+Real
+Synthetic
+Swapped
+```
+
+| Actual / Predicted | Real | Synthetic | Swapped |
+| ------------------ | ---: | --------: | ------: |
+| **Real**           |  882 |        18 |       0 |
+| **Synthetic**      |   24 |       876 |       0 |
+| **Swapped**        |    2 |         0 |     898 |
+
+The matrix shows that the majority of classification errors occurred between the **real** and **synthetic** classes.
+
+---
+
+# Classification Report
+
+| Class                |  Precision |     Recall |   F1-Score |   Support |
+| -------------------- | ---------: | ---------: | ---------: | --------: |
+| Real                 |     97.14% |     98.00% |     97.57% |       900 |
+| Synthetic            |     97.99% |     97.33% |     97.66% |       900 |
+| Swapped              |    100.00% |     99.78% |     99.89% |       900 |
+| **Macro Average**    | **98.37%** | **98.37%** | **98.37%** | **2,700** |
+| **Weighted Average** | **98.37%** | **98.37%** | **98.37%** | **2,700** |
+
+Because each class contains the same number of test images, the macro and weighted averages are identical in this evaluation.
+
+---
+
+# Training Development
+
+An earlier development experiment used a smaller dataset containing **9,000 images**, with 3,000 images per class.
+
+That experiment achieved a test accuracy of:
+
+**96.07%**
+
+The final experiment expanded the dataset to **18,000 images**, with 6,000 images per class, and achieved:
+
+**98.37% test accuracy.**
+
+| Experiment   | Dataset Size | Test Accuracy |
+| ------------ | -----------: | ------------: |
+| Experiment 1 |        9,000 |        96.07% |
+| Experiment 2 |       18,000 |    **98.37%** |
+
+The experiments represent stages in the development and evaluation of the system. The final deployed model is based on **Experiment 2**.
+
+---
+
+# Web Application
+
+The web application provides an interface through which users can submit an image for analysis.
+
+The general interaction is:
+
+```text
+User selects image
+        │
+        ▼
+Frontend validates input
+        │
+        ▼
+Image sent to Flask API
+        │
+        ▼
+Backend checks image
+        │
+        ▼
+Face detection
+        │
+        ▼
+EfficientNet-B0 inference
+        │
+        ▼
+Prediction probabilities
+        │
+        ▼
+Result returned to frontend
+        │
+        ▼
+Classification + confidence displayed
+```
+
+---
+
+# Facial Input Validation
+
+The application checks whether the uploaded image contains a detectable face before performing classification.
+
+Images in which no face is detected are rejected because the model was developed specifically for facial-image classification.
+
+The system therefore distinguishes between:
+
+* Invalid image files
+* Images without a detected face
+* Valid facial images suitable for classification
+
+Face detection is performed using **OpenCV's Haar Cascade classifier** within the backend.
+
+---
+
+# Prediction Confidence
+
+The model produces a probability distribution over the three classes.
+
+For example:
+
+```text
+Real:       0.03
+Synthetic:  0.95
+Swapped:    0.02
+```
+
+The class with the highest probability is returned as the predicted class.
+
+The application displays this probability as the prediction confidence.
+
+The confidence value represents the model's output probability for the selected class. It should not be interpreted as a guarantee that the classification is correct.
+
+---
+
+# Technologies
+
+## Machine Learning
+
 * Python
+* PyTorch
+* Torchvision
+* EfficientNet-B0
+* Scikit-learn
 
-### Frontend
+## Backend
 
-* **React**
-* **Vite**
-* **TypeScript**
-* **Tailwind CSS**
+* Flask
+* PyTorch
+* Pillow
+* OpenCV
+* NumPy
 
-### Development Environment
+## Frontend
 
-The system was developed and tested on:
-
-* **CPU:** Intel Core i5-8265U
-* **RAM:** 8 GB
-* **GPU:** Intel UHD Graphics 620
-* **Operating System:** Windows
-* **Node.js:** v24.11.0
-* **npm:** v11.10.0
-
-Training was performed on the CPU without a dedicated GPU.
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* React Router
+* Lucide
+* Framer Motion
+* Radix UI components
 
 ---
 
-## Project Structure
+# Project Structure
 
-The repository is organised approximately as follows:
+A simplified version of the project structure is:
 
 ```text
 deep_fake_is-this-real/
 │
-├── models/
-│   └── ...
+├── backend/
+│   └── app.py
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
 │
 ├── models (experiment two)/
-│   ├── efficientnet_b0.pth
-│   └── ...
+│   └── efficientnet_b0.pth
+│
+├── dataset/
+│   ├── train/
+│   ├── val/
+│   └── test/
 │
 ├── raw_data/
 │   ├── real/
@@ -350,54 +465,46 @@ deep_fake_is-this-real/
 │   └── swapped/
 │
 ├── cropped_faces/
-│   ├── real/
-│   ├── synthetic/
-│   └── swapped/
-│
-├── dataset/
-│   ├── train/
-│   │   ├── real/
-│   │   ├── synthetic/
-│   │   └── swapped/
-│   ├── val/
-│   │   ├── real/
-│   │   ├── synthetic/
-│   │   └── swapped/
-│   └── test/
-│       ├── real/
-│       ├── synthetic/
-│       └── swapped/
 │
 ├── src/
-│   ├── ...
 │   ├── dataset_loader.py
-│   ├── test_model2.py
-│   └── ...
+│   ├── preprocessing.py
+│   ├── train_model.py
+│   └── test_model2.py
 │
-├── frontend/
-│   └── ...
-│
-├── requirements.txt
-├── package.json
 └── README.md
 ```
 
-> **Note:** Dataset images and model checkpoints may be excluded from the public repository depending on repository size, licensing, and dataset redistribution restrictions.
+The exact directory structure may vary depending on the development environment and which datasets or intermediate files are retained locally.
 
 ---
 
-## Installation
+# Installation
 
-### 1. Clone the Repository
+## Requirements
 
-```bash
-git clone <YOUR-GITHUB-REPOSITORY-URL>
-cd deep_fake_is-this-real
-```
+The project requires:
 
-### 2. Create a Python Virtual Environment
+* Python 3.x
+* Node.js
+* npm
+* PyTorch
+* Torchvision
+* Flask
+* OpenCV
+* NumPy
+* Pillow
+* Scikit-learn
 
-On Windows:
+The final model can perform inference on a CPU.
+
+---
+
+# Backend Setup
+
+Create and activate a Python virtual environment.
+
+### Windows
 
 ```powershell
 python -m venv venv
@@ -406,309 +513,248 @@ python -m venv venv
 Activate it:
 
 ```powershell
-.\venv\Scripts\Activate.ps1
-```
-
-If PowerShell execution policies prevent activation, the environment can also be activated through Command Prompt:
-
-```cmd
 venv\Scripts\activate
 ```
 
-### 3. Install Python Dependencies
+Install the required Python packages:
 
-```bash
-pip install -r requirements.txt
+```powershell
+pip install torch torchvision flask pillow opencv-python numpy scikit-learn
 ```
 
-If the requirements file does not contain all application dependencies, install the required packages manually:
+Navigate to the backend directory and start the Flask server.
 
-```bash
-pip install torch torchvision flask pillow numpy opencv-python
-```
+For example:
 
----
-
-## Running the Backend
-
-Navigate to the backend directory if required by the repository structure and activate the Python virtual environment.
-
-Then run:
-
-```bash
+```powershell
 python app.py
 ```
 
-The Flask server should start locally.
-
-The backend is configured to load the Experiment Two EfficientNet-B0 checkpoint:
+The backend runs locally and exposes the prediction endpoint:
 
 ```text
-models (experiment two)/efficientnet_b0.pth
-```
-
-The prediction endpoint is:
-
-```text
-POST /predict
+/predict
 ```
 
 ---
 
-## Running the Frontend
+# Frontend Setup
 
-Open a separate terminal and navigate to the frontend directory.
+Navigate to the frontend directory:
 
-Install the frontend dependencies:
+```powershell
+cd frontend
+```
 
-```bash
+Install the project dependencies:
+
+```powershell
 npm install
 ```
 
-Then start the development server:
+Start the Vite development server:
 
-```bash
+```powershell
 npm run dev
 ```
 
-Vite will provide a local development URL in the terminal.
-
-Open that address in a web browser to access the application.
+The terminal will provide the local address at which the frontend can be accessed.
 
 ---
 
-## Making a Prediction
+# API
 
-Once both the backend and frontend are running:
+The backend provides a `/predict` endpoint for image classification.
 
-1. Open the web application.
-2. Select an image containing a visible face.
-3. Submit the image for analysis.
-4. The frontend sends the image to the Flask backend.
-5. The backend validates the image.
-6. The image is passed through the trained EfficientNet-B0 model.
-7. The predicted class and confidence are returned.
-8. The frontend displays the result.
+### Request
 
-Example result categories:
-
-```text
-Likely Real
-Confidence: 97.4%
+```http
+POST /predict
+Content-Type: multipart/form-data
 ```
 
-or:
+The image should be provided using the form field:
 
 ```text
-Likely Synthetic
-Confidence: 91.8%
+image
 ```
 
-The displayed confidence is model output and should not be interpreted as absolute certainty.
-
----
-
-## Model Output
-
-The backend returns a response containing the predicted class, confidence, and class probabilities.
-
-Conceptually, the response follows this structure:
+### Example Response
 
 ```json
 {
-  "prediction": "real",
-  "confidence": 0.974,
+  "prediction": "synthetic",
+  "confidence": 0.95,
   "probabilities": {
-    "real": 0.974,
-    "synthetic": 0.018,
-    "swapped": 0.008
+    "real": 0.03,
+    "synthetic": 0.95,
+    "swapped": 0.02
   }
 }
 ```
 
-The exact values depend on the submitted image.
+The exact probability values vary depending on the input image.
 
 ---
 
-## Training
+# Model Training
 
-The training pipeline uses:
+The training pipeline can be used to train the EfficientNet-B0 model using the prepared dataset.
 
-```text
-Dataset
-   ↓
-Face Detection / Cropping
-   ↓
-224 × 224 Images
-   ↓
-Train / Validation / Test Split
-   ↓
-EfficientNet-B0
-   ↓
-Transfer Learning
-   ↓
-Cross-Entropy Loss
-   ↓
-Adam Optimiser
-   ↓
-Validation Evaluation
-   ↓
-Best Model Checkpoint
+From the appropriate project directory:
+
+```powershell
+python src\train_model2.py
 ```
 
-The final experiment used:
+The training pipeline:
 
-```text
-Batch size:       8
-Learning rate:    0.0001
-Optimiser:        Adam
-Loss:             Cross-Entropy Loss
-Epochs:           12
-Device:           CPU
-Best epoch:       11
-```
-
-The training configuration was constrained partly by the available 8 GB RAM system.
+1. Loads the prepared dataset
+2. Creates the EfficientNet-B0 model
+3. Loads ImageNet-pretrained weights
+4. Replaces the original classifier
+5. Trains the three-class model
+6. Evaluates validation performance after each epoch
+7. Saves epoch checkpoints
+8. Saves the model with the highest validation accuracy
 
 ---
 
-## Evaluation
+# Model Evaluation
 
-The final model can be evaluated using the project's test script.
-
-From the project root:
+The final model can be evaluated using:
 
 ```powershell
 python src\test_model2.py
 ```
 
-The evaluation script loads:
-
-```text
-dataset/test/
-```
-
-and the Experiment Two model:
-
-```text
-models (experiment two)/efficientnet_b0.pth
-```
-
-It reports:
+The evaluation script reports:
 
 * Number of test images
-* Model checkpoint information
+* Selected model epoch
+* Validation accuracy of the selected model
 * Test accuracy
 * Confusion matrix
-* Classification report
 * Precision
 * Recall
 * F1-score
 
+The test dataset is not used during model training or model selection.
+
 ---
 
-## Limitations
+# Computational Environment
 
-The current system has several limitations.
+The system was developed and trained using a laptop-based CPU environment.
 
-### Dataset Generalisation
+### Development Hardware
 
-The model learns from the visual characteristics represented in its training datasets. Its performance may therefore differ when presented with images generated or manipulated using techniques that are not represented in the training data.
+* **Computer:** HP EliteBook 840 G6
+* **Processor:** Intel Core i5-8265U
+* **Memory:** 8 GB RAM
+* **Graphics:** Intel UHD Graphics 620
+* **Training device:** CPU
 
-### Synthetic Image Diversity
+The CPU-only environment influenced training time and contributed to the use of a relatively lightweight architecture and small batch size.
 
-The synthetic category is primarily represented by StyleGAN3-generated images. Other generative architectures may produce different visual characteristics.
+---
 
-### Face-Swapping Diversity
+# Limitations
 
-The face-swapped category is based on a particular face-swapping dataset. More advanced or visually subtle face-swapping techniques may present different challenges.
+Despite the high test-set classification performance, the system has several limitations.
 
 ### Image-Only Detection
 
-The system analyses still images and does not currently perform video or audio deepfake detection.
+The current system is designed for still images and does not analyse video, audio, or temporal inconsistencies.
 
-### Computational Resources
+### Dataset Dependence
 
-Training was performed using CPU-based hardware with 8 GB of RAM and no dedicated GPU. This limited the practical size and complexity of some experiments.
+Performance depends on the characteristics of the datasets used during development. A model may encounter different manipulation techniques, image-generation methods, compression levels, or image distributions in real-world applications.
+
+### Synthetic Image Diversity
+
+The synthetic class is based primarily on StyleGAN-generated faces. Other generative models may produce different visual characteristics.
+
+### Face-Swapped Data
+
+The face-swapped class is based on a specific source dataset. Different face-swapping techniques may introduce artifacts that differ from those represented in the training data.
+
+### Computational Constraints
+
+Training was performed on a CPU-based laptop with 8 GB of RAM. Access to more powerful computational resources would make it practical to investigate larger datasets and additional architectures.
 
 ### Confidence Interpretation
 
-The confidence value represents the model's predicted probability distribution and should not be interpreted as definitive proof of authenticity.
+The confidence value represents the model's output probability and should not be interpreted as absolute certainty.
+
+### Face Detection Dependency
+
+The application relies on facial detection before classification. A valid facial image may occasionally fail the detection step because of factors such as pose, image quality, occlusion, or lighting.
 
 ---
 
-## Future Development
+# Future Development
 
-Possible future improvements include:
+Potential areas for future development include:
 
-* Expanding the training dataset
-* Incorporating multiple synthetic-image generation methods
-* Incorporating additional face-swapping techniques
-* Improving real-versus-synthetic classification
-* Evaluating additional neural network architectures
-* Performing cross-dataset evaluation
-* Training with GPU acceleration
-* Improving facial detection and localisation
-* Supporting multiple faces within a single image
-* Extending the system to video deepfake detection
-* Investigating multimodal detection involving audio and video
-* Adding model explainability techniques
-* Improving confidence calibration
-* Evaluating the model against previously unseen generation and manipulation methods
+* Expanding the diversity and size of the training dataset
+* Including synthetic images from additional generative architectures
+* Including additional face-swapping methods
+* Evaluating other CNN architectures
+* Investigating transformer-based image classification models
+* Testing the system against previously unseen deepfake generation techniques
+* Improving facial-region detection and preprocessing
+* Adding explainable-AI techniques such as saliency maps
+* Extending the system to video-based deepfake detection
+* Improving deployment efficiency
+* Evaluating performance across different image compression levels and resolutions
 
 ---
 
-## Academic Context
+# Academic Context
 
-This project was developed as a **final-year Information Technology project at the University of Ghana, Legon**.
+This project was developed as a **final-year project at the University of Ghana, Legon** within the field of Computer Science.
 
-The project investigates the application of convolutional neural networks and transfer learning to the problem of automated deepfake image classification.
+The project investigates the use of convolutional neural networks and transfer learning for automated deepfake image classification.
 
-### Project Title
+The final system demonstrates an end-to-end workflow covering:
 
-**Deepfake Image Detection Using Convolutional Neural Networks and Generation Pattern Analysis**
-
----
-
-## Important Note on Results
-
-The reported **97.44% test accuracy** represents the performance of the final Experiment Two model on the project's designated test set of 2,700 images.
-
-It should not be interpreted as a universal measure of deepfake detection accuracy across all existing datasets, generation techniques, image qualities, or manipulation methods.
-
-The model's performance is dependent on the data distributions, preprocessing procedures, architecture, and experimental conditions used in this project.
-
----
-
-## License
-
-This project is intended primarily for **academic and educational purposes**.
-
-The source code may be used for learning and research subject to the terms of the repository license.
-
-The datasets used by this project may have their own licensing and usage restrictions. Users should obtain the datasets directly from their respective sources and comply with their applicable terms rather than redistributing the datasets through this repository.
+```text
+Dataset Preparation
+       ↓
+Face Preprocessing
+       ↓
+Model Training
+       ↓
+Model Evaluation
+       ↓
+Backend Integration
+       ↓
+Web Application
+       ↓
+User Prediction
+```
 
 ---
 
-## Acknowledgements
+# Acknowledgements
 
-This project makes use of publicly available datasets and open-source machine-learning and software-development technologies.
+The project makes use of publicly distributed datasets and open-source machine-learning and software-development technologies.
 
-Special acknowledgement is given to the creators and distributors of the datasets used for the real, synthetic, and face-swapped image categories, as well as the developers of PyTorch, Torchvision, EfficientNet, Flask, React, Vite, and the other open-source technologies used to implement the system.
+The dataset sources, software libraries, and frameworks used in the project are acknowledged for supporting the development and evaluation of the system.
 
 ---
 
-## Author
+# Author
 
 **Vanessa Elinam Daker**
 
 University of Ghana, Legon
-Department of Computer Science
 
 ---
 
-## Project Status
+# License
 
-**Completed academic prototype**
+This project was developed for academic purposes as part of a final-year project.
 
-The current version represents the final evaluated implementation developed for the project. Further development may improve dataset diversity, generalisation, model explainability, and support for additional forms of manipulated media.
+Individual datasets and third-party libraries used by the project may be subject to their respective licenses and terms of use.
