@@ -406,7 +406,13 @@ export function useDetection() {
       // We do not manually set Content-Type because the
       // browser automatically handles the multipart boundary
       // when FormData is used.
-      const response = await fetch('/predict', {
+
+      const API_URL =
+        import.meta.env.DEV
+          ? ''
+          : 'https://erudite-app-backend.onrender.com';
+
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         body: formData
       });
