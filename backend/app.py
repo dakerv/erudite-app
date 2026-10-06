@@ -65,8 +65,12 @@ def home():
     return "Deepfake Detection Backend is running!" # message received when someone visits
 
 @app.route("/predict", methods=['POST']) # route which is /predict, POST is a request
-def predict(): 
-    print("\nPrediction request received")
+def predict():
+
+    import time
+    start_time = time.time()
+
+    print("\nPrediction request received", flush=True)
 
     if "image" not in request.files:
         return {
@@ -80,10 +84,15 @@ def predict():
         "error": "No image was selected"
     }, 400
 
-    print(f"Received image: {image.filename}")
+    print(f"Received image: {image.filename}", flush=True)
 
     try:
         image = Image.open(image).convert("RGB")
+
+        print(
+            f"Image opened successfully: {time.time() - start_time:.2f}s",
+            flush=True
+        )
 
     except UnidentifiedImageError: # send an error instead of crashing if image is unsuitable in any way
         return {
@@ -97,11 +106,23 @@ def predict():
     try: 
 
         image_array = np.array(image) 
+
+        print(
+            f"Image converted to array: {time.time() - start_time:.2f}s",
+            flush=True
+        )
         
         gray_image = cv2.cvtColor(
             image_array, 
             cv2.COLOR_RGB2GRAY 
         ) 
+
+        print(
+            f"Image converted to grayscale: {time.time() - start_time:.2f}s",
+            flush=True
+        )
+
+        print("Starting face detection...", flush=True)
         
         faces = face_detector.detectMultiScale(
             gray_image,
@@ -109,6 +130,11 @@ def predict():
             minNeighbors=5,
             minSize=(30, 30) 
         ) 
+
+        print(
+            f"Face detection completed: {time.time() - start_time:.2f}s",
+            flush=True
+        )
         
         if len(faces) == 0: 
             return { 
@@ -116,51 +142,71 @@ def predict():
             }, 400 
         
     except Exception as error: 
-        print(f"Face detection error: {error}") 
+        print(f"Face detection error: {error}", flush=True) 
         
-        return { "error": "An error occurred while checking the image for a face"
+        return { 
+            "error": "An error occurred while checking the image for a face"
         }, 500
+
+    print("Starting image preprocessing...", flush=True)
 
     image_tensor = inference_transform(image)
 
-    image_tensor = image_tensor.unsqueeze(0) # unsqueeze to add a batch dimension explaining that we're predicting only one image, not 8 like during training. so from [3, 256, 256] to [1, 3, 256, 256]
+    image_tensor = image_tensor.unsqueeze(0) # unsqueeze to add a batch dimension explaining that we're predicting only one image, not 8 like during training. so from [3, 224, 224] to [1, 3, 224, 224]
 
     image_tensor = image_tensor.to(DEVICE)
 
+    print(
+        f"Image preprocessing completed: {time.time() - start_time:.2f}s",
+        flush=True
+    )
+
     try:
+
+        print("Starting model inference...", flush=True)
 
         with torch.no_grad(): # don't calculate gradients
 
             outputs = model(image_tensor) # images enters model and prediction is made, three scores, one for each class
 
-            probabilities = torch.softmax(outputs, dim=1) # converts those scores into values that behave like probabilities
+        print(
+            f"Model inference completed: {time.time() - start_time:.2f}s",
+            flush=True
+        )
 
-            predicted_class = torch.argmax( # which class has the highest probability? 0, 1, 2 for each class respectively
-                probabilities,
-                dim=1
-            ).item()
+        probabilities = torch.softmax(outputs, dim=1) # converts those scores into values that behave like probabilities
 
-            confidence = probabilities[0][predicted_class].item() # gets the probability corresponding to the class the model selected
+        predicted_class = torch.argmax( # which class has the highest probability? 0, 1, 2 for each class respectively
+            probabilities,
+            dim=1
+        ).item()
 
-            class_names = [
-                "real",
-                "synthetic",
-                "swapped"
-            ]
+        confidence = probabilities[0][predicted_class].item() # gets the probability corresponding to the class the model selected
 
-            prediction = class_names[predicted_class]
+        class_names = [
+            "real",
+            "synthetic",
+            "swapped"
+        ]
 
-            class_probabilities = {
-                class_names[i]: probabilities[0][i].item()
-                for i in range(NUM_CLASSES)
-            }
+        prediction = class_names[predicted_class]
+
+        class_probabilities = {
+            class_names[i]: probabilities[0][i].item()
+            for i in range(NUM_CLASSES)
+        }
 
     except Exception as error:
-        print(f"Prediction error: {error}")
+        print(f"Prediction error: {error}", flush=True)
 
         return {
             "error": "An error occurred while processing the image"
         }, 500
+
+    print(
+        f"Prediction completed successfully: {time.time() - start_time:.2f}s",
+        flush=True
+    )
 
     return {
     "prediction": prediction,
