@@ -6,9 +6,9 @@ import type {
 } from '../types/detection';
 
 
-// ============================================================
+// ==================================
 // ACCEPTED FILE TYPES AND SIZE LIMIT
-// ============================================================
+// ==================================
 
 // Image formats accepted by the detection system.
 const ACCEPTED = [
@@ -22,9 +22,9 @@ const ACCEPTED = [
 const MAX_BYTES = 12 * 1024 * 1024;
 
 
-// ============================================================
+// ========================
 // DETECTION STAGE SEQUENCE
-// ============================================================
+// ========================
 
 // Stages displayed to the user while an image is being
 // processed.
@@ -69,9 +69,9 @@ export const STAGE_LABELS = STAGE_SEQUENCE.map((s) => ({
 }));
 
 
-// ============================================================
+// =======================
 // FLASK API RESPONSE TYPE
-// ============================================================
+// =======================
 
 // Structure of the JSON response returned by Flask.
 //
@@ -123,9 +123,9 @@ interface PredictionResponse {
 export function useDetection() {
 
 
-  // ==========================================================
+  // =================
   // APPLICATION STATE
-  // ==========================================================
+  // =================
 
   // Current detection status.
   const [status, setStatus] =
@@ -152,9 +152,9 @@ export function useDetection() {
     useState<string | null>(null);
 
 
-  // ==========================================================
+  // ==================
   // ASSESSMENT COUNTER
-  // ==========================================================
+  // ==================
 
   // Gives each completed assessment a simple ID:
   //
@@ -167,9 +167,9 @@ export function useDetection() {
   const counter = useRef(1);
 
 
-  // ==========================================================
+  // ================
   // TIMER MANAGEMENT
-  // ==========================================================
+  // =================
 
   // Stores active processing-stage timers.
   const timers = useRef<number[]>([]);

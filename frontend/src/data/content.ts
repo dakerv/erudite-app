@@ -17,7 +17,7 @@ export const imageTypes: ImageType[] = [
   label: 'REAL',
   caption:
   'An image captured without synthetic generation or face replacement.',
-  image: "/eea5ca27-581b-4ccb-978a-df3b602f1246.jpg",
+  image: "/00068.jpg",
 
   credit: 'ARCHIVE / 35MM · UNALTERED CAPTURE'
 },
@@ -26,7 +26,7 @@ export const imageTypes: ImageType[] = [
   label: 'FACE-SWAPPED',
   caption:
   'An existing image in which facial content has been digitally replaced or manipulated.',
-  image: "/9b700a8f-28c9-4d6f-83e2-d7c465f481f7.jpg",
+  image: "/45800_45799.jpg",
 
   credit: 'ARCHIVE / 35MM · FACIAL REGION REPLACED'
 },
@@ -35,7 +35,7 @@ export const imageTypes: ImageType[] = [
   label: 'SYNTHETIC',
   caption:
   'An image generated artificially rather than captured as a conventional photograph.',
-  image: "/9985e3cf-9b1c-4567-8569-9be286424bb2.jpg",
+  image: "/fake_1.jpg",
 
   credit: 'NO CAMERA ORIGIN · FULLY GENERATED'
 }];
