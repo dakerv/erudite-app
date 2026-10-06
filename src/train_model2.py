@@ -63,7 +63,7 @@ BEST_VAL_ACCURACY = 0.0
 
 BATCH_SIZE = 8
 
-EPOCHS = 14
+EPOCHS = 15
 
 LEARNING_RATE = 0.0001
 
@@ -226,6 +226,7 @@ if PREVIOUS_EPOCH_CHECKPOINT.exists():
             f"Best validation accuracy restored: "
             f"{BEST_VAL_ACCURACY:.2f}%"
         )
+
 
 
 # ==========================

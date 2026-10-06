@@ -1,5 +1,7 @@
 from flask import Flask, request
-import torch
+from flask_cors import CORS
+import os
+import torch 
 import cv2
 import numpy as np
 from PIL import Image, UnidentifiedImageError
@@ -19,8 +21,14 @@ model.classifier[1] = nn.Linear(
     NUM_CLASSES
 )
 
-checkpoint = torch.load( # loading the best saved model
-    "../models (experiment two)/efficientnet_b0.pth",
+MODEL_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "models (experiment two)",
+    "efficientnet_b0.pth"
+)
+
+checkpoint = torch.load(
+    MODEL_PATH,
     map_location=DEVICE
 )
 
@@ -49,6 +57,8 @@ inference_transform = transforms.Compose( # transformations from validation and 
 face_detector = cv2.CascadeClassifier( cv2.data.haarcascades + "haarcascade_frontalface_default.xml" )
 
 app = Flask(__name__) # creates flask application
+
+CORS(app, origins=["https://erudite-app.vercel.app"]) # Allows deployed frontend to call API
 
 @app.route("/") # Initial route named '/' sends GET request by default because we didn't specify
 def home():
@@ -159,4 +169,4 @@ def predict():
     }
 
 if __name__ == "__main__": # if we're running this file directly, start Flask server
-    app.run(debug=True)
+    app.run()

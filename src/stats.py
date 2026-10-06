@@ -1,6 +1,6 @@
 import torch
 
-for epoch in [1,2,3,4,5,6,7,8,9,10,11,12,13,14]:
+for epoch in [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]:
     checkpoint = torch.load(
         f"models (experiment two)/efficientnet_b0_epoch_{epoch}.pth",
         map_location="cpu"
