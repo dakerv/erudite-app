@@ -35,7 +35,7 @@ export const imageTypes: ImageType[] = [
   label: 'SYNTHETIC',
   caption:
   'An image generated artificially rather than captured as a conventional photograph.',
-  image: "/fake_1.jpg",
+  image: "/fake_25.jpg",
 
   credit: 'NO CAMERA ORIGIN · FULLY GENERATED'
 }];
