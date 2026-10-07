@@ -10,7 +10,7 @@ export function FeaturedCase() {
       <div className="mx-auto max-w-spread px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
         <div className="flex items-baseline justify-between border-b border-ink pb-2">
           <p className="font-mono text-[10px] uppercase tracking-label text-ink">
-            Case study / Face-swapped
+            Case study / Synthetic
           </p>
           <p className="font-mono text-[10px] uppercase tracking-label text-gray-soft">
             Plate 01
