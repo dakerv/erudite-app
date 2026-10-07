@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import type { Assessment as AssessmentReport } from '../types/detection';
 import { VERDICT_LABELS } from '../types/detection';
