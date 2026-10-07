@@ -1,6 +1,6 @@
 import type { Assessment } from '../types/detection';
 
-export const FEATURED_IMAGE = "/685_686.jpg";
+export const FEATURED_IMAGE = "/3f810dc8-de92-45b9-a94b-5556f5e4b27e.jpg";
 
 
 export interface ImageType {

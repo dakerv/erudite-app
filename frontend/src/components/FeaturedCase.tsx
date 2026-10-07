@@ -44,11 +44,11 @@ export function FeaturedCase() {
             
             Do you know this
             <br />
-            is <span className="italic lowercase">swapped?</span>
+            is <span className="italic lowercase">synthetic?</span>
           </h2>
           <div className="lg:col-span-5 lg:pt-2">
             <p className="max-w-[48ch] text-[16px] leading-[1.65] text-graphite">
-              Modern face-swapping techniques can produce images that appear
+              Modern generation techniques can produce images that appear
               ordinary at first glance, making visual authenticity increasingly
               difficult to judge.
             </p>
